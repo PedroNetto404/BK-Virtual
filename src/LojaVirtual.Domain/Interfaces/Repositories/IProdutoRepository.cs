@@ -9,4 +9,5 @@ public interface IProdutoRepository
     Task AdicionarAsync(Produto produto);
     Task<Produto?> BuscarPorIdAsync(Guid id);
     IQueryable<Produto> BuscarTodos();
+    void AtualizarAsync(Produto produto);
 }

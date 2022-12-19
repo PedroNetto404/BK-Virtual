@@ -11,4 +11,5 @@ public interface IPedidoRepository
     Task AdicionarAsync(Pedido pedido);
     Task<Pedido?> BuscarPorIdAsync(Guid id);
     Task AdicionarItemAsync(PedidoItem pedidoItem);
+    void Atualizar(Pedido pedido);
 }

@@ -33,4 +33,9 @@ public class ProdutoRepository : IProdutoRepository
         return _context.Produtos
             .AsNoTracking().Where(p => p.Ativo);
     }
+
+    public void AtualizarAsync(Produto produto)
+    {
+        _context.Produtos.Update(produto);
+    }
 }

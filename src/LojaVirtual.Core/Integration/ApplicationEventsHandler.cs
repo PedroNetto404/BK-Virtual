@@ -15,8 +15,9 @@ public class ApplicationEventsHandler : INotificationHandler<FinalizarPedidoEven
     {
         var resultado = await _mediator.Send(new MovimentarEstoqueRequest() { Itens = notification.Itens }, cancellationToken);
 
-      
-            var resultadoPagamento = await _mediator.Send(new RealizarPagamentoRequest
+        if (resultado)
+        {
+            _ = await _mediator.Send(new RealizarPagamentoRequest
             {
                 UsuarioId = notification.UsuarioId,
                 PedidoId = notification.PedidoId,
@@ -26,7 +27,10 @@ public class ApplicationEventsHandler : INotificationHandler<FinalizarPedidoEven
                 NumeroCartao = notification.NumeroCartao,
                 CodigoVerificadoCartao = notification.CodigoVerificadoCartao
             }, cancellationToken);
-       
+        }
+        else
+        {
             _ = await _mediator.Send(new CancelarPedidoRequest { PedidoId = notification.PedidoId }, cancellationToken);
+        }
     }
 }

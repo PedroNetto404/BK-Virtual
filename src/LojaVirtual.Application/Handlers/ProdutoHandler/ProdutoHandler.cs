@@ -19,7 +19,8 @@ public class ProdutoHandler :
     IRequestHandler<ListarProdutoRequest, BaseResponse>,
     IRequestHandler<ListarProdutoPorIdRequest, BaseResponse>,
     IRequestHandler<EditarProdutoRequest, BaseResponse>,
-    IRequestHandler<MovimentarEstoqueRequest, bool>
+    IRequestHandler<MovimentarEstoqueRequest, bool>,
+    IRequestHandler<ReverterEstoquePedidoRequest, bool>
 {
     private readonly IProdutoRepository _produtoRepository;
     private readonly IPaginacao<Produto> _paginacaoProdutos;
@@ -129,6 +130,23 @@ public class ProdutoHandler :
             produto.DebitarEstoque(item.Quantidade);
         }
 
+        await _produtoRepository.UnityOfWork.SalvarAlteracoesAsync();
+        return true;
+    }
+
+    public async Task<bool> Handle(ReverterEstoquePedidoRequest request, CancellationToken cancellationToken)
+    {
+        
+        foreach (var item in request.Items)
+        {
+            Produto? produto = await _produtoRepository.BuscarPorIdAsync(item.Id); 
+            
+            if(ReferenceEquals(produto, null)) return false;
+            
+            produto.ReporEstoque(item.Quantidade);
+            _produtoRepository.AtualizarAsync(produto);
+        }
+        
         await _produtoRepository.UnityOfWork.SalvarAlteracoesAsync();
         return true;
     }

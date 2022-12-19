@@ -18,18 +18,26 @@ public class PagamentoHandler :
     private readonly IPagamentoFacade _pagamentoFacade;
     private readonly IPagamentoRepository _pagamentoRepository;
     private readonly ITransacaoRepository _transacaoRepository;
+    private readonly IPedidoRepository _pedidoRepository; 
 
-    public PagamentoHandler(IMediator mediator, IMapper mapper, IPagamentoFacade pagamentoFacade,
-        ITransacaoRepository transacaoRepository, IPagamentoRepository pagamentoRepository) : base(mediator, mapper)
+    public PagamentoHandler(
+        IMediator mediator,
+        IMapper mapper,
+        IPagamentoFacade pagamentoFacade,
+        ITransacaoRepository transacaoRepository, 
+        IPagamentoRepository pagamentoRepository,
+        IPedidoRepository pedidoRepository) : base(mediator, mapper)
     {
         _pagamentoFacade = pagamentoFacade;
         _transacaoRepository = transacaoRepository;
         _pagamentoRepository = pagamentoRepository;
+        _pedidoRepository = pedidoRepository;
     }
 
     public async Task<BaseResponse> Handle(RealizarPagamentoRequest request, CancellationToken cancellationToken)
     {
-        var pagamento = new Pagamento(request.PedidoId, request.Total, request.NomeCartao, request.NumeroCartao, request.ExpiracaoCartao,
+        var pagamento = new Pagamento(request.PedidoId, request.Total, request.NomeCartao, request.NumeroCartao,
+            request.ExpiracaoCartao,
             request.CodigoVerificadoCartao);
 
         var transacao = await _pagamentoFacade.RealizarPagamentoAsync(request.PedidoId, request.Total, pagamento);
@@ -41,12 +49,10 @@ public class PagamentoHandler :
             await _pagamentoRepository.UnityOfWork.SalvarAlteracoesAsync();
             return BaseResponse.Sucesso();
         }
-        
-        await Mediator.Publish(new NotificacaoErro(nameof(RealizarPagamentoRequest),"Pagamento não autorizado"),
-                    cancellationToken);
-        
+
         // enviar evento de pagamento recusado (voltar pedido carrinho e produtos no estoque)
         
+
         return BaseResponse.Erro();
     }
 }

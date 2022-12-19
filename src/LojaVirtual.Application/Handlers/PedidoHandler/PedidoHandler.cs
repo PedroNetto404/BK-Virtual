@@ -15,7 +15,8 @@ public class PedidoHandler :
     BaseHandler,
     IRequestHandler<AdicionarItemPedidoRequest, BaseResponse>,
     IRequestHandler<FinalizarPedidoRequest, BaseResponse>,
-    IRequestHandler<CancelarPedidoRequest, BaseResponse>
+    IRequestHandler<CancelarPedidoRequest, BaseResponse>, 
+    IRequestHandler<ReverterPedidoRequest, BaseResponse>
 {
     private readonly IProdutoRepository _produtoRepository;
     private readonly IPedidoRepository _pedidoRepository;
@@ -115,5 +116,29 @@ public class PedidoHandler :
         await _pedidoRepository.UnityOfWork.SalvarAlteracoesAsync();
         
         return BaseResponse.Sucesso();
+    }
+
+    public async Task<BaseResponse> Handle(ReverterPedidoRequest request, CancellationToken cancellationToken)
+    {
+        var pedido = await _pedidoRepository.BuscarPorIdAsync(request.PedidoId);
+        
+        pedido.RetornarPedidoCarrinho();
+        
+        _pedidoRepository.Atualizar(pedido);
+        
+        var itens = new List<Item>();
+        foreach (var pedidoItem in pedido.PedidoItens)
+            itens.Add(new Item
+            {
+                Id = pedidoItem.Id, 
+                Quantidade = pedidoItem.Quantidade
+            });
+        
+        var result = await Mediator.Send(new ReverterEstoquePedidoRequest
+        { 
+            Items = itens
+        });
+
+        return result ? BaseResponse.Sucesso() : BaseResponse.Erro();
     }
 }

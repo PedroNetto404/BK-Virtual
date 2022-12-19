@@ -49,4 +49,7 @@ public class PedidoRepository : IPedidoRepository
     {
         await _context.PedidoItem.AddAsync(pedidoItem);
     }
+
+    public void Atualizar(Pedido pedido) =>
+        _context.Pedidos.Update(pedido);
 }
